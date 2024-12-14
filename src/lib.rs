@@ -95,7 +95,11 @@ impl<A: Allocator> Allocation<A> {
         Self { ptr, layout, alloc }
     }
     pub fn try_realloc(&mut self, new_layout: Layout) -> Result<(), AllocError> {
-        if new_layout.size() > self.layout.size() {
+        if new_layout == self.layout {
+            return Ok(());
+        }
+        // Prefer grow to shrink when all we do is change alignment
+        if new_layout.size() >= self.layout.size() {
             (self.ptr, self.layout) =
                 unsafe { grow(&self.alloc, self.ptr, self.layout, new_layout)? };
             Ok(())
