@@ -48,6 +48,7 @@ unsafe fn shrink(
     Ok(match_allocated_size(ptr, new_layout))
 }
 
+/// Methods for the global allocator
 impl Allocation {
     // Forwards to alloc, handles layout.size() == 0 with a dangling ptr
     pub fn new(layout: Layout) -> Self {
@@ -61,6 +62,7 @@ impl Allocation {
         Self::from_parts_in(ptr, layout, Global)
     }
 }
+/// Common methods
 impl<A: Allocator> Allocation<A> {
     pub fn as_slice(&self) -> NonNull<[MaybeUninit<u8>]> {
         let ptr = core::ptr::slice_from_raw_parts_mut(
@@ -75,8 +77,11 @@ impl<A: Allocator> Allocation<A> {
             .try_realloc(new_layout)
             .unwrap_or_else(|AllocError| alloc::alloc::handle_alloc_error(new_layout));
     }
+    pub fn layout(&self) -> Layout {
+        self.layout
+    }
 }
-
+/// Methods using the allocator-api or shim
 impl<A: Allocator> Allocation<A> {
     pub fn new_in(layout: Layout, alloc: A) -> Self {
         Self::try_new_in(layout, alloc)
@@ -108,9 +113,6 @@ impl<A: Allocator> Allocation<A> {
                 unsafe { shrink(&self.alloc, self.ptr, self.layout, new_layout)? };
             Ok(())
         }
-    }
-    pub fn layout(&self) -> Layout {
-        self.layout
     }
 }
 
