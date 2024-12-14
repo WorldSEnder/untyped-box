@@ -1,0 +1,23 @@
+[package]
+name = "untyped-box"
+version = "0.1.0"
+edition = "2021"
+authors = [
+  "Martin Molzer <WorldSEnder@users.noreply.github.com>",
+]
+license = "MIT OR Apache-2.0"
+keywords = ["allocation", "box"]
+categories = ["data-structures", "embedded", "memory-management", "no-std"]
+description = "A heap allocation utility when the datatype is unknown."
+readme = "README.md"
+repository = "https://github.com/WorldSEnder/untyped-box"
+
+[dependencies]
+
+[features]
+# Requires nightly
+allocator-api = []
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
