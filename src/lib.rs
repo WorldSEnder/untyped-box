@@ -122,5 +122,8 @@ impl<A: Allocator> Drop for Allocation<A> {
     }
 }
 
+unsafe impl<A: Allocator + Sync> Sync for Allocation<A> {}
+unsafe impl<A: Allocator + Send> Send for Allocation<A> {}
+
 #[cfg(test)]
 mod test;
