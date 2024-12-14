@@ -4,7 +4,7 @@
 //!
 //! [Allocator]: https://doc.rust-lang.org/std/alloc/trait.Allocator.html
 #![no_std]
-#![cfg_attr(feature = "allocator-api", feature(allocator-api))]
+#![cfg_attr(feature = "allocator-api", feature(allocator_api))]
 
 use core::{alloc::Layout, mem::MaybeUninit, ptr::NonNull};
 

@@ -1,3 +1,10 @@
+/// Run with
+///
+/// ```bash
+/// cargo test
+/// cargo +nightly miri test
+/// cargo +nightly miri test --features allocator-api
+/// ```
 use alloc::{boxed::Box, vec::Vec};
 
 use crate::*;
