@@ -15,6 +15,7 @@ extern crate alloc;
 mod alloc_shim;
 
 pub struct Allocation<A: Allocator = Global> {
+    // TODO: should be a Unique pointer!
     ptr: NonNull<u8>,
     layout: Layout,
     alloc: A,
