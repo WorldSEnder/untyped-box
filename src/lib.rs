@@ -6,7 +6,7 @@
 #![no_std]
 #![cfg_attr(feature = "allocator-api", feature(allocator_api))]
 
-use core::{alloc::Layout, mem::MaybeUninit, ptr::NonNull};
+use core::{alloc::Layout, any::type_name, mem::MaybeUninit, ptr::NonNull};
 
 use alloc_shim::{AllocError, Allocator, Global};
 
@@ -67,6 +67,35 @@ impl Allocation {
 }
 /// Common methods
 impl<A: Allocator> Allocation<A> {
+    pub fn as_ptr<T>(&self) -> NonNull<T> {
+        self.ptr.cast()
+    }
+    pub fn as_uninit_ref<T>(&self) -> &MaybeUninit<T> {
+        assert!(
+            self.layout.size() >= size_of::<T>(),
+            "allocation too small to represent a {}",
+            type_name::<T>()
+        );
+        assert!(
+            self.layout.align() >= align_of::<T>(),
+            "allocation not aligned for a {}",
+            type_name::<T>()
+        );
+        unsafe { &*self.ptr.as_ptr().cast() }
+    }
+    pub fn as_uninit_mut<T>(&mut self) -> &mut MaybeUninit<T> {
+        assert!(
+            self.layout.size() >= size_of::<T>(),
+            "allocation too small to represent a {}",
+            type_name::<T>()
+        );
+        assert!(
+            self.layout.align() >= align_of::<T>(),
+            "allocation not aligned for a {}",
+            type_name::<T>()
+        );
+        unsafe { &mut *self.ptr.as_ptr().cast() }
+    }
     pub fn as_slice(&self) -> NonNull<[MaybeUninit<u8>]> {
         let ptr = core::ptr::slice_from_raw_parts_mut(
             self.ptr.as_ptr().cast::<MaybeUninit<u8>>(),
