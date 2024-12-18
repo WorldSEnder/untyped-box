@@ -24,6 +24,7 @@ jobs:
           - toolchain: beta
             when: ${{ github.event_name == 'schedule' }}
     uses: ./.github/workflows/run-tests.yml
+    secrets: inherit
     with:
       toolchain: ${{ matrix.toolchain }}
       unstable-features: ${{ matrix.toolchain == 'nightly' }}
