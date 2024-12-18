@@ -18,12 +18,12 @@ jobs:
       matrix:
         toolchain: [stable, beta, nightly]
         when: [true]
-      exclude:
-        # don't no need to run stable&beta lints on schedule, they should trigger way sooner
-        - toolchain: stable
-          when: ${{ github.event_name == 'schedule' }}
-        - toolchain: beta
-          when: ${{ github.event_name == 'schedule' }}
+        exclude:
+          # don't no need to run stable&beta lints on schedule, they should trigger way sooner
+          - toolchain: stable
+            when: ${{ github.event_name == 'schedule' }}
+          - toolchain: beta
+            when: ${{ github.event_name == 'schedule' }}
     uses: ./.github/workflows/run-tests.yml
     with:
       toolchain: ${{ matrix.toolchain }}
