@@ -53,3 +53,32 @@ fn convert_vec() {
     let (ptr, _) = filled_alloc.into_parts();
     let _ = unsafe { Vec::<i32>::from_raw_parts(ptr.as_ptr().cast(), 0, 32) };
 }
+
+#[test]
+fn zeroed() {
+    let alloc = Allocation::zeroed(Layout::new::<i32>());
+    assert_eq!(
+        *unsafe { alloc.as_uninit_ref::<i32>().assume_init_ref() },
+        0
+    );
+
+    let mut alloc = Allocation::new(Layout::new::<[i32; 1]>());
+    unsafe {
+        alloc.as_ptr::<i32>().write(42);
+    }
+    alloc.realloc_zeroed(Layout::new::<[i32; 2]>());
+    assert_eq!(
+        unsafe { alloc.as_uninit_ref::<[i32; 2]>().assume_init_ref() },
+        &[42, 0]
+    );
+    alloc.realloc_zeroed(Layout::new::<[i32; 1]>());
+    assert_eq!(
+        *unsafe { alloc.as_uninit_ref::<i32>().assume_init_ref() },
+        42
+    );
+    alloc.realloc_zeroed(Layout::new::<[i32; 2]>());
+    assert_eq!(
+        unsafe { alloc.as_uninit_ref::<[i32; 2]>().assume_init_ref() },
+        &[42, 0]
+    );
+}

@@ -4,12 +4,22 @@ pub use alloc::alloc::{AllocError, Allocator, Global};
 #[cfg(not(feature = "allocator-api"))]
 mod shim {
     use core::{alloc::Layout, ptr::NonNull};
+    fn write_zeroes(ptr: *mut [u8]) {
+        unsafe { core::ptr::write_bytes(ptr as *mut u8, 0, ptr.len()) };
+    }
 
     pub struct AllocError;
     pub trait Allocator {
         fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError>;
+        fn allocate_zeroed(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError>;
         unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: Layout);
         unsafe fn grow(
+            &self,
+            ptr: NonNull<u8>,
+            old_layout: Layout,
+            new_layout: Layout,
+        ) -> Result<NonNull<[u8]>, AllocError>;
+        unsafe fn grow_zeroed(
             &self,
             ptr: NonNull<u8>,
             old_layout: Layout,
@@ -34,6 +44,12 @@ mod shim {
                 let slice = core::ptr::slice_from_raw_parts_mut(ptr, layout.size());
                 Ok(NonNull::new(slice).ok_or(AllocError)?)
             }
+        }
+        fn allocate_zeroed(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
+            let alloc = self.allocate(layout)?;
+            // memory is fresh so in particular not aliased
+            write_zeroes(alloc.as_ptr());
+            Ok(alloc)
         }
 
         unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: Layout) {
@@ -63,6 +79,18 @@ mod shim {
                 self.deallocate(old_ptr, old_layout);
                 Ok(new_ptr)
             }
+        }
+
+        unsafe fn grow_zeroed(
+            &self,
+            old_ptr: NonNull<u8>,
+            old_layout: Layout,
+            new_layout: Layout,
+        ) -> Result<NonNull<[u8]>, AllocError> {
+            let alloc = self.grow(old_ptr, old_layout, new_layout)?;
+            let to_zero_part = &raw mut (*alloc.as_ptr())[old_layout.size()..];
+            write_zeroes(to_zero_part);
+            Ok(alloc)
         }
 
         unsafe fn shrink(

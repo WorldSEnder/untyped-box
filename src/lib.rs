@@ -30,6 +30,13 @@ fn allocate(alloc: &impl Allocator, layout: Layout) -> Result<(NonNull<u8>, Layo
     let ptr = alloc.allocate(layout)?;
     Ok(match_allocated_size(ptr, layout))
 }
+fn allocate_zeroed(
+    alloc: &impl Allocator,
+    layout: Layout,
+) -> Result<(NonNull<u8>, Layout), AllocError> {
+    let ptr = alloc.allocate_zeroed(layout)?;
+    Ok(match_allocated_size(ptr, layout))
+}
 unsafe fn grow(
     alloc: &impl Allocator,
     ptr: NonNull<u8>,
@@ -37,6 +44,15 @@ unsafe fn grow(
     new_layout: Layout,
 ) -> Result<(NonNull<u8>, Layout), AllocError> {
     let ptr = alloc.grow(ptr, old_layout, new_layout)?;
+    Ok(match_allocated_size(ptr, new_layout))
+}
+unsafe fn grow_zeroed(
+    alloc: &impl Allocator,
+    ptr: NonNull<u8>,
+    old_layout: Layout,
+    new_layout: Layout,
+) -> Result<(NonNull<u8>, Layout), AllocError> {
+    let ptr = alloc.grow_zeroed(ptr, old_layout, new_layout)?;
     Ok(match_allocated_size(ptr, new_layout))
 }
 unsafe fn shrink(
@@ -54,6 +70,9 @@ impl Allocation {
     // Forwards to alloc, handles layout.size() == 0 with a dangling ptr
     pub fn new(layout: Layout) -> Self {
         Self::new_in(layout, Global)
+    }
+    pub fn zeroed(layout: Layout) -> Self {
+        Self::zeroed_in(layout, Global)
     }
     pub fn into_parts(self) -> (NonNull<u8>, Layout) {
         let (ptr, layout, _) = Self::into_parts_with_alloc(self);
@@ -109,6 +128,11 @@ impl<A: Allocator> Allocation<A> {
             .try_realloc(new_layout)
             .unwrap_or_else(|AllocError| alloc::alloc::handle_alloc_error(new_layout));
     }
+    pub fn realloc_zeroed(&mut self, new_layout: Layout) {
+        let () = self
+            .try_realloc_zeroed(new_layout)
+            .unwrap_or_else(|AllocError| alloc::alloc::handle_alloc_error(new_layout));
+    }
     pub fn layout(&self) -> Layout {
         self.layout
     }
@@ -121,6 +145,14 @@ impl<A: Allocator> Allocation<A> {
     }
     pub fn try_new_in(layout: Layout, alloc: A) -> Result<Self, AllocError> {
         let (ptr, layout) = allocate(&alloc, layout)?;
+        Ok(Self { ptr, layout, alloc })
+    }
+    pub fn zeroed_in(layout: Layout, alloc: A) -> Self {
+        Self::try_zeroed_in(layout, alloc)
+            .unwrap_or_else(|AllocError| alloc::alloc::handle_alloc_error(layout))
+    }
+    pub fn try_zeroed_in(layout: Layout, alloc: A) -> Result<Self, AllocError> {
+        let (ptr, layout) = allocate_zeroed(&alloc, layout)?;
         Ok(Self { ptr, layout, alloc })
     }
     pub fn into_parts_with_alloc(self) -> (NonNull<u8>, Layout, A) {
@@ -141,6 +173,21 @@ impl<A: Allocator> Allocation<A> {
         if new_layout.size() >= self.layout.size() {
             (self.ptr, self.layout) =
                 unsafe { grow(&self.alloc, self.ptr, self.layout, new_layout)? };
+            Ok(())
+        } else {
+            (self.ptr, self.layout) =
+                unsafe { shrink(&self.alloc, self.ptr, self.layout, new_layout)? };
+            Ok(())
+        }
+    }
+    pub fn try_realloc_zeroed(&mut self, new_layout: Layout) -> Result<(), AllocError> {
+        if new_layout == self.layout {
+            return Ok(());
+        }
+        // Prefer grow to shrink when all we do is change alignment
+        if new_layout.size() >= self.layout.size() {
+            (self.ptr, self.layout) =
+                unsafe { grow_zeroed(&self.alloc, self.ptr, self.layout, new_layout)? };
             Ok(())
         } else {
             (self.ptr, self.layout) =
