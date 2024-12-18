@@ -22,7 +22,7 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: ${{ inputs.toolchain }}
-          components: ${{ inputs.toolchain == 'nightly' && 'miri' }}
+          components: ${{ inputs.toolchain == 'nightly' && 'miri' || '' }}
           cache: ${{ inputs.toolchain != 'nightly' }}
       - run: ./ci/test.sh --features "$ENABLED_FEATURES"
       - run: cargo miri test --features "$ENABLED_FEATURES"
