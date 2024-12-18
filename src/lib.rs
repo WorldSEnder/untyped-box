@@ -59,6 +59,8 @@ impl Allocation {
         let (ptr, layout, _) = Self::into_parts_with_alloc(self);
         (ptr, layout)
     }
+    /// # Safety
+    /// Needs to provide values returned from a previous call to [Self::into_parts].
     pub unsafe fn from_parts(ptr: NonNull<u8>, layout: Layout) -> Self {
         Self::from_parts_in(ptr, layout, Global)
     }
@@ -97,6 +99,8 @@ impl<A: Allocator> Allocation<A> {
         let alloc = unsafe { core::ptr::read(&me.alloc) };
         (me.ptr, me.layout, alloc)
     }
+    /// # Safety
+    /// Needs to provide values returned from a previous call to [Self::into_parts_with_alloc].
     pub unsafe fn from_parts_in(ptr: NonNull<u8>, layout: Layout, alloc: A) -> Self {
         Self { ptr, layout, alloc }
     }
