@@ -1,0 +1,33 @@
+name: Lints
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  clippy:
+    name: Run lints
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain: [stable, beta, nightly]
+        when: [true]
+      exclude:
+        # don't no need to run stable&beta lints on schedule, they should trigger way sooner
+        - toolchain: stable
+          when: ${{ github.event_name == 'schedule' }}
+        - toolchain: beta
+          when: ${{ github.event_name == 'schedule' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: clippy, rustfmt
+          cache: ${{ matrix.toolchain != 'nightly' }}
+      - run: ./ci/clippy.sh
