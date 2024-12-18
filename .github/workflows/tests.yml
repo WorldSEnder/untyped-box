@@ -1,0 +1,30 @@
+name: Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || !github.pull_request.draft }}
+    strategy:
+      matrix:
+        toolchain: [stable, beta, nightly]
+        when: [true]
+      exclude:
+        # don't no need to run stable&beta lints on schedule, they should trigger way sooner
+        - toolchain: stable
+          when: ${{ github.event_name == 'schedule' }}
+        - toolchain: beta
+          when: ${{ github.event_name == 'schedule' }}
+    uses: ./.github/workflows/run-tests.yml
+    with:
+      toolchain: ${{ matrix.toolchain }}
+      unstable-features: ${{ matrix.toolchain == 'nightly' }}
