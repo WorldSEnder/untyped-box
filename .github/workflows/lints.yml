@@ -13,6 +13,7 @@ jobs:
   clippy:
     name: Run lints
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.toolchain != 'stable' }}
     strategy:
       matrix:
         toolchain: [stable, beta, nightly]
