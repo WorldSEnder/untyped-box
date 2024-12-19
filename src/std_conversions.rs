@@ -4,10 +4,17 @@ use alloc::{boxed::Box, vec::Vec};
 
 use crate::{alloc_shim::Allocator, Allocation};
 
+/// Error when converting an [Allocation] to a [Box].
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum BoxConversionError {
-    LayoutMismatch { expected: Layout, allocated: Layout },
+    /// Indicates that the layout of the requested type does not match the layout of the allocation.
+    LayoutMismatch {
+        /// expected layout for the requested type
+        expected: Layout,
+        /// layout of the allocation
+        allocated: Layout,
+    },
 }
 
 impl BoxConversionError {
@@ -19,17 +26,30 @@ impl BoxConversionError {
     }
 }
 
+/// Error when converting an [Allocation] to a [Vec].
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum VecConversionError {
+    /// Indicates an alignment mismatch of the requested element type and the allocation.
     AlignMismatch {
+        /// expected alignment for the requested type
         expected: usize,
+        /// actual alignment of the allocation
         allocated: usize,
     },
+    /// Indicates that there is some slack capacity when trying to fit a whole multiple of
+    /// elements into the allocated memory to determine the vec's capacity.
     SlackCapacity {
+        /// size of the requested element
         element_size: usize,
+        /// allocated capacity in bytes
         allocated: usize,
     },
+    /// Tried to convert to a Vec of ZSTs. This is currently not supported due to ambiguity
+    /// of the requested capacity. Even if the allocation is zero-sized, we can fit an
+    /// arbitrary amount of elements as capacity.
+    ///
+    /// If you need this conversion to succeed, open an issue.
     ZeroSizedElements,
 }
 

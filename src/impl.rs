@@ -15,6 +15,12 @@ pub struct Allocation<A: Allocator = Global> {
     alloc: A,
 }
 
+// TODO: There is a bit of a mismatch here. In essence, we are losing information.
+// For example, requesting an allocation for some `Layout::new::<T>()` that results in the allocator
+// giving us more memory than we asked for might make later checks when trying to convert to a `Box`
+// fail on size mismatch.
+// We might have to blow up the allocation struct to reconstruct [Memory fitting] information.
+// [Memory fitting]: https://doc.rust-lang.org/nightly/alloc/alloc/trait.Allocator.html#memory-fitting
 fn match_allocated_size(ptr: NonNull<[u8]>, layout: Layout) -> (NonNull<u8>, Layout) {
     let actual_layout = unsafe { Layout::from_size_align_unchecked(ptr.len(), layout.align()) };
     debug_assert!(actual_layout.size() >= layout.size());
