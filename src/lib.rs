@@ -5,6 +5,7 @@
 //! [Allocator]: https://doc.rust-lang.org/std/alloc/trait.Allocator.html
 #![no_std]
 #![cfg_attr(feature = "allocator-api", feature(allocator_api))]
+#![warn(missing_docs)]
 
 extern crate alloc;
 
