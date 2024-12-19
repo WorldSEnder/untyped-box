@@ -1,11 +1,13 @@
-/// Run with
-///
-/// ```bash
-/// cargo test
-/// cargo +nightly miri test
-/// cargo +nightly miri test --features allocator-api
-/// ```
-use alloc::{boxed::Box, vec::Vec};
+//! Run with
+//!
+//! ```bash
+//! cargo test
+//! cargo +nightly miri test
+//! cargo +nightly miri test --features allocator-api
+//! ```
+
+use alloc::boxed::Box;
+use core::alloc::Layout;
 
 use crate::*;
 
@@ -39,19 +41,23 @@ fn test_data() {
 #[test]
 fn convert_box() {
     let alloc = Allocation::new(Layout::new::<i32>());
-    let (ptr, _) = alloc.into_parts();
-    let _ = unsafe { Box::<i32>::from_raw(ptr.as_ptr().cast()) };
+    let _boxed = alloc.try_into_box::<i32>().unwrap();
+
+    let boxed = Box::new(42);
+    let _alloc = Allocation::from(boxed);
 }
 
 #[test]
 fn convert_vec() {
     let empty_alloc = Allocation::new(Layout::new::<[i32; 0]>());
-    let (ptr, _) = empty_alloc.into_parts();
-    let _ = unsafe { Vec::<i32>::from_raw_parts(ptr.as_ptr().cast(), 0, 0) };
+    let vec = empty_alloc.try_into_vec::<i32>().unwrap();
+    assert_eq!(vec.capacity(), 0);
 
     let filled_alloc = Allocation::new(Layout::new::<[i32; 32]>());
-    let (ptr, _) = filled_alloc.into_parts();
-    let _ = unsafe { Vec::<i32>::from_raw_parts(ptr.as_ptr().cast(), 0, 32) };
+    let vec = filled_alloc.try_into_vec::<i32>().unwrap();
+    assert_eq!(vec.capacity(), 32);
+
+    // TODO: implement a cast for ZST with size hints?
 }
 
 #[test]
