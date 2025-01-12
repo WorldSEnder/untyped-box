@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: ${{ inputs.toolchain != 'stable' }}
     env:
-      ENABLED_FEATURES: ${{ inputs.unstable-features && 'allocator-api' || '' }}
+      ENABLED_FEATURES: ${{ inputs.unstable-features && 'nightly-std-conversions' || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1

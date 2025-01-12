@@ -1,10 +1,8 @@
 #![doc = include_str!("../README.md")]
 //! ## Available features
-//! - `allocator-api`: Requires nightly and enables allocating with a specific [Allocator].
-//!
-//! [Allocator]: https://doc.rust-lang.org/std/alloc/trait.Allocator.html
+//! - `nightly-std-conversions`: Requires nightly and enables additional conversions for `Box` and `Vec` types in std.
 #![no_std]
-#![cfg_attr(feature = "allocator-api", feature(allocator_api))]
+#![cfg_attr(feature = "nightly-std-conversions", feature(allocator_api))]
 #![warn(missing_docs)]
 
 extern crate alloc;
