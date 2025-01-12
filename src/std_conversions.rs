@@ -135,7 +135,7 @@ impl<T> TryFrom<crate::Allocation> for Vec<T> {
     }
 }
 
-#[cfg(feature = "allocator-api")]
+#[cfg(feature = "nightly-std-conversions")]
 mod alloc_allocator_api {
     macro_rules! box_to_parts {
         ($value:ident) => {
@@ -197,7 +197,7 @@ mod alloc_allocator_api {
     pub(super) use vec_to_parts;
 }
 
-#[cfg(not(feature = "allocator-api"))]
+#[cfg(not(feature = "nightly-std-conversions"))]
 mod alloc_no_allocator_api {
     macro_rules! box_to_parts {
         ($value:ident) => {
@@ -275,9 +275,9 @@ mod alloc_no_allocator_api {
     pub(super) use vec_to_parts;
 }
 
-#[cfg(feature = "allocator-api")]
+#[cfg(feature = "nightly-std-conversions")]
 use alloc_allocator_api as api_impl;
-#[cfg(not(feature = "allocator-api"))]
+#[cfg(not(feature = "nightly-std-conversions"))]
 use alloc_no_allocator_api as api_impl;
 
 api_impl::allocation_impl! {

@@ -1,6 +1,6 @@
 [package]
 name = "untyped-box"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = [
   "Martin Molzer <WorldSEnder@users.noreply.github.com>",
@@ -13,10 +13,10 @@ readme = "README.md"
 repository = "https://github.com/WorldSEnder/untyped-box"
 
 [dependencies]
+allocator-api2 = { version = "0.2.21", features = ["alloc"] }
 
 [features]
-# Requires nightly
-allocator-api = []
+nightly-std-conversions = ["allocator-api2/nightly"]
 
 [package.metadata.docs.rs]
 all-features = true
