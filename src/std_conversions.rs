@@ -109,6 +109,7 @@ fn check_vec_layout<A: Allocator, T>(
     }
     let element_size = expected.size();
     let byte_capacity = actual.size();
+    #[allow(clippy::manual_is_multiple_of)] // would require MSRV of 1.87
     if (element_size == 0 && byte_capacity != 0) || byte_capacity % element_size != 0 {
         return Err(VecConversionError::slack_capacity(
             element_size,

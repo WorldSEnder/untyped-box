@@ -85,6 +85,12 @@ impl Allocation {
     pub fn new(layout: Layout) -> Self {
         Self::new_in(layout, Global)
     }
+    /// Allocate new memory for the given layout.
+    ///
+    /// Same as [`Self::new`] but returns an error when memory could not be allocated.
+    pub fn try_new(layout: Layout) -> Result<Self, AllocError> {
+        Self::try_new_in(layout, Global)
+    }
     /// Allocate new zeroed-out memory for the given layout.
     ///
     /// # Panics
@@ -93,6 +99,12 @@ impl Allocation {
     /// See [`Self::try_zeroed_in`] for a version that returns an error instead.
     pub fn zeroed(layout: Layout) -> Self {
         Self::zeroed_in(layout, Global)
+    }
+    /// Allocate new zeroed-out memory for the given layout.
+    ///
+    /// Same as [`Self::zeroed`] but returns an error when memory could not be allocated.
+    pub fn try_zeroed(layout: Layout) -> Result<Self, AllocError> {
+        Self::try_zeroed_in(layout, Global)
     }
     /// Split the allocation into its raw parts.
     ///
